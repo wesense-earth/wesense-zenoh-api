@@ -20,12 +20,14 @@ RUN apt-get update && \
     apt-get purge -y --auto-remove gcc && \
     rm -rf /var/lib/apt/lists/* /tmp/wesense-ingester-core
 
-# Copy application code
+# Copy application code and entrypoint
 COPY wesense-zenoh-api/zenoh_api.py .
+COPY wesense-zenoh-api/entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
 
 # Create directories for logs
 RUN mkdir -p /app/logs
 
 ENV TZ=UTC
 
-CMD ["python", "-u", "zenoh_api.py"]
+ENTRYPOINT ["/app/entrypoint.sh"]
