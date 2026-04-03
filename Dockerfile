@@ -17,6 +17,7 @@ COPY wesense-ingester-core/ /tmp/wesense-ingester-core/
 # Install gcc, build all pip packages, then remove gcc in one layer
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc && \
+    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "/tmp/wesense-ingester-core[p2p]" && \
     pip install --no-cache-dir flask waitress && \
     apt-get purge -y --auto-remove gcc && \
