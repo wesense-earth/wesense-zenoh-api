@@ -9,23 +9,28 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy dependency files first for better layer caching
+# Bust cache when ingester-core or app code changes
+ARG CACHE_BUST=1
+
 COPY wesense-ingester-core/ /tmp/wesense-ingester-core/
 
 # Install gcc, build all pip packages, then remove gcc in one layer
 RUN apt-get update && \
     apt-get install -y --no-install-recommends gcc && \
+    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir "/tmp/wesense-ingester-core[p2p]" && \
     pip install --no-cache-dir flask waitress && \
     apt-get purge -y --auto-remove gcc && \
     rm -rf /var/lib/apt/lists/* /tmp/wesense-ingester-core
 
-# Copy application code
+# Copy application code and entrypoint
 COPY wesense-zenoh-api/zenoh_api.py .
+COPY wesense-zenoh-api/entrypoint.sh .
+RUN chmod +x /app/entrypoint.sh
 
 # Create directories for logs
 RUN mkdir -p /app/logs
 
 ENV TZ=UTC
 
-CMD ["python", "-u", "zenoh_api.py"]
+ENTRYPOINT ["/app/entrypoint.sh"]
